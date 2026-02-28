@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8번 차원</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+    @font-face { 
+        font-family: 'ONE-Mobile-POP'; 
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff') format('woff'); 
+    }
+    body { 
+        font-family: 'ONE-Mobile-POP', sans-serif; 
+        background-color: #2c3e50; 
+        background-image: radial-gradient(#34495e 15%, transparent 16%), radial-gradient(#34495e 15%, transparent 16%);
+        background-size: 60px 60px;
+        background-position: 0 0, 30px 30px;
+        color: #fff; text-align: center; margin: 0; padding: 0; 
+        display: flex; justify-content: center; align-items: center; height: 100vh; user-select: none;
+    }
+
+    #game-container { 
+        width: 95vw; max-width: 900px; height: 90vh; max-height: 720px;
+        background-color: #fffdf7; color: #333;
+        border: 8px solid #f39c12; border-radius: 20px; position: relative; 
+        overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+      20%, 40%, 60%, 80% { transform: translateX(8px); }
+    }
+    .shake-effect { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+
+    .screen { 
+        display: none; width: 100%; height: 100%; flex-direction: column; 
+        justify-content: center; align-items: center; position: absolute; 
+        top: 0; left: 0; animation: fadeIn 0.3s ease-in-out; padding: 20px; box-sizing: border-box;
+    }
+    .active { display: flex; }
+    @keyframes imageFadeIn {
+        from { opacity: 0; transform: scale(0.98); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .fade-in-effect {
+        animation: imageFadeIn 0.5s ease-out;
+    }
+    .score-board { 
+        position: absolute; top: 20px; left: 20px; font-size: 24px; color: #fff; 
+        background: #e67e22; padding: 8px 20px; border-radius: 30px; z-index: 10; border: 3px solid #d35400;
+        display: none; 
+    }
+
+    .btn-skip {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: #7f8c8d;
+        border-bottom: 5px solid #636e72;
+        padding: 12px 26px;
+        font-size: 22px;   
+        font-family: 'ONE-Mobile-POP', sans-serif;
+        color: white;
+        border-radius: 25px;
+        z-index: 20;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-skip:hover { background-color: #95a5a6; transform: translateY(-3px); }
+    .btn-skip:active { transform: translateY(2px); }
+    
+    .char-image-container { 
+        width: 90%; max-width: 400px; 
+        aspect-ratio: 1 / 1; flex-shrink: 0;
+        background-color: #ecf0f1; display: flex; 
+        justify-content: center; align-items: center; margin-bottom: 15px; 
+        border: 6px solid #bdc3c7; border-radius: 20px; overflow: hidden;
+        position: relative; 
+    }
+    .char-image-container img { width: 100%; height: 100%; object-fit: contain; }
+    
+    .name-overlay {
+        position: absolute; top: 10px; left: 10px; 
+        background: rgba(0, 0, 0, 0.6); color: #fff; 
+        padding: 8px 15px; border-radius: 15px; font-size: 25px;
+        font-weight: normal; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        white-space: nowrap; z-index: 5;
+    }
+
+    .stats-overlay {
+        position: absolute; bottom: 10px; right: 10px;
+        background: rgba(0, 0, 0, 0.7); color: #fff;
+        padding: 6px 12px; border-radius: 12px; font-size: 14px;
+        text-align: right; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        z-index: 5;
+    }
+
+    .speech-box {
+        width: 90%; max-width: 500px; min-height: 40px; background: rgba(255, 255, 255, 0.95);
+        color: #2c3e50; border-radius: 12px; padding: 12px 20px; margin-bottom: 15px;
+        border: 4px solid #34495e; box-shadow: 4px 4px 0px rgba(52, 73, 94, 0.1);
+        display: flex; justify-content: center; align-items: center; font-size: 18px;
+    }
+/* 👇 이 부분을 새로 추가해 주세요 👇 */
+    .speech-box p {
+        white-space: pre-wrap; /* \n 기호를 실제 줄바꿈으로 인식하게 만듭니다 */
+        margin: 0; 
+        line-height: 1.4; /* 줄 간격도 살짝 넓혀서 보기 좋게 */
+    }
+
+    button { 
+        padding: 15px 40px; font-size: 20px; font-family: 'ONE-Mobile-POP', sans-serif;
+        cursor: pointer; border: none; border-radius: 50px; 
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        box-shadow: 0 8px 0px rgba(0,0,0,0.15); 
+        color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        display: inline-flex; align-items: center; justify-content: center; outline: none;
+    }
+    button:hover { transform: translateY(-5px); box-shadow: 0 13px 0px rgba(0,0,0,0.1); }
+    button:active { transform: translateY(5px); box-shadow: 0 2px 0px rgba(0,0,0,0.2); }
+
+    .btn-group { display: flex; gap: 15px; justify-content: center; }
+    .btn-real { background-color: #2ecc71; border-bottom: 4px solid #27ae60; }
+    .btn-fake { background-color: #e74c3c; border-bottom: 4px solid #c0392b; }
+    .btn-move { background-color: #3498db; border-bottom: 4px solid #2980b9; padding: 18px 50px; }
+    .btn-close { background-color: #7f8c8d; border-bottom: 4px solid #636e72; padding: 12px 24px; font-size: 16px; margin-top: 15px; }
+
+    #waiting-list-panel {
+        transition: all 0.3s ease; overflow-y: auto;
+        scrollbar-width: none; -ms-overflow-style: none;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    #waiting-list-panel::-webkit-scrollbar { display: none; }
+    
+    #waiting-list-panel.full-view {
+        width: 100%; justify-content: flex-start;
+    }
+    
+    #filter-container {
+        display: flex; flex-wrap: wrap; justify-content: center; 
+        gap: 6px; width: 100%; padding: 15px 10px 5px 10px; max-width: 600px;
+        box-sizing: border-box; flex-shrink: 0;
+    }
+    
+    #waiting-list-panel.detail-view #filter-container {
+        padding: 10px 5px; max-width: 100%;
+    }
+
+    .filter-btn {
+        width: 30px; height: 30px; border-radius: 50%;
+        border: 2px solid #bdc3c7; background-color: #ecf0f1;
+        color: #2c3e50; font-family: 'ONE-Mobile-POP', sans-serif;
+        font-size: 13px; cursor: pointer; transition: all 0.2s;
+        display: flex; justify-content: center; align-items: center;
+        padding: 0; flex-shrink: 0; box-shadow: 0 3px 0px rgba(0,0,0,0.1);
+    }
+    .filter-btn.all-btn { width: auto; padding: 0 12px; border-radius: 15px; }
+    .filter-btn:hover { background-color: #f39c12; color: white; border-color: #d35400; transform: translateY(-2px); }
+    .filter-btn.active { background-color: #e67e22; color: white; border-color: #d35400; transform: translateY(2px); box-shadow: 0 1px 0px rgba(0,0,0,0.1); }
+
+    #waiting-chars {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 10px; width: 100%; box-sizing: border-box;
+    }
+
+    #waiting-list-panel.detail-view {
+        width: 170px; border-left: 4px dashed #bdc3c7; padding: 0; cursor: grab;
+    }
+    #waiting-list-panel.detail-view:active { cursor: grabbing; }
+    #waiting-list-panel.detail-view #waiting-chars {
+        display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; justify-items: center; padding-top: 5px;
+    }
+
+    .waiting-char { 
+        width: 65px; height: 65px; background-color: #fff; border-radius: 50%; 
+        cursor: pointer; overflow: hidden; border: 4px solid #bdc3c7; transition: transform 0.2s; flex-shrink: 0;
+    }
+    .waiting-char:hover { transform: scale(1.1); }
+    .waiting-char img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    .waiting-char.correct { border-color: #2ecc71; }
+    .waiting-char.wrong { border-color: #e74c3c; }
+    .waiting-char.unattempted { border-color: #95a5a6; filter: grayscale(100%); opacity: 0.6; }
+
+    .detail-layout { display: flex; flex-direction: row; align-items: stretch; justify-content: center; width: 100%; max-width: 550px; }
+    .vertical-nav { display: flex; flex-direction: column; gap: 12px; justify-content: center; padding-right: 15px; }
+    .nav-btn {
+        padding: 12px 20px; font-size: 18px; border: none; border-radius: 12px; cursor: pointer;
+        font-family: 'ONE-Mobile-POP', sans-serif; transition: all 0.2s; background: #95a5a6; color: white;
+        border-bottom: 4px solid #7f8c8d; box-shadow: none;
+    }
+    .nav-btn.active { background: #f39c12; border-bottom: 4px solid #d35400; transform: scale(1.05); }
+    .nav-btn:hover:not(.active) { background: #bdc3c7; transform: translateY(-2px); }
+
+    @media (max-width: 600px) {
+        #waiting-list-panel.detail-view { width: 130px; }
+        .waiting-char { width: 50px; height: 50px; }
+        h3 { margin: 5px 0; font-size: 20px !important; }
+        .name-overlay { font-size: 16px; padding: 6px 12px; top: 8px; left: 8px; } 
+        .btn-move { padding: 12px 30px; font-size: 16px; }
+        .detail-layout { flex-direction: column; align-items: center; }
+        .vertical-nav { flex-direction: row; padding-right: 0; padding-bottom: 15px; }
+        .nav-btn { padding: 8px 15px; font-size: 16px; }
+    }
+
+    #loading-container { width: 80%; height: 24px; background-color: #ecf0f1; border-radius: 12px; margin-top: 20px; border: 3px solid #34495e; overflow: hidden; }
+    #loading-bar { width: 0%; height: 100%; background-color: #f1c40f; transition: width 0.3s ease-out; }
+    .result-title { font-size: 32px; margin-bottom: 5px; margin-top: 30px; transition: color 0.3s; }
+    .result-correct { color: #27ae60; }
+    .result-wrong { color: #c0392b; }
+    .result-question { color: #3498db; }
+
+    /* 특수 씬: 캐릭터 스크롤 설정 */
+    #ending-slide-container {
+        display: none;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    
+    #ending-slide-track {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        /* width: max-content가 핵심입니다. 잘림 방지 */
+        width: max-content; 
+    }
+    
+/* 특수 씬: 캐릭터 스크롤 설정 */
+    #ending-slide-container {
+        display: none;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    
+    #ending-slide-track {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        width: max-content; 
+    }
+    
+    /* 슬라이드 아이템을 감싸는 상자 (새로 추가됨) */
+    .slide-item {
+        position: relative;
+        height: 70%;
+        aspect-ratio: 1 / 1;
+        margin: 0 15px;
+        flex-shrink: 0;
+        border-radius: 15px;
+        border: 4px solid #bdc3c7;
+        background-color: #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    /* 상자 안의 이미지 */
+    .slide-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="score-board">현재 차원: <span id="score">0</span> / 8</div>
+
+    <div id="screen-loading" class="screen active">
+        <h2 id="loading-text" style="color: #34495e; font-size: 28px;">볼따구 전수 조사 중... (0%)</h2>
+        <div id="loading-container"><div id="loading-bar"></div></div>
+    </div>
+
+    <div id="screen-intro" class="screen">
+        <button class="btn-skip" onclick="skipIntro()">스킵 ⏭</button>
+        
+        <div class="char-image-container" style="margin-top: 30px;">
+            <img id="intro-image" src="">
+            <div id="intro-name-overlay" class="name-overlay"></div>
+        </div>
+        <div class="speech-box"><p id="intro-dialogue-text"></p></div>
+        
+        <div class="btn-group">
+            <button class="btn-move" onclick="nextIntro()">다음 ▶</button>
+        </div>
+    </div>
+
+    <div id="screen-waiting" class="screen" style="padding: 0;">
+        <div id="waiting-header" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 20px;">
+            <h2 style="margin-bottom: 10px; font-size: 32px;">대기실</h2>
+        </div>
+
+        <div style="width: 100%; flex: 1; display: flex; flex-direction: row; overflow: hidden; justify-content: center; position: relative;">
+            
+            <div id="waiting-detail-left" style="display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; padding: 10px;">
+                
+                <div class="detail-layout">
+                    <div class="vertical-nav">
+                        <button class="nav-btn" id="nav-btn-q" onclick="changeDetailView('question')">문제</button>
+                        <button class="nav-btn" id="nav-btn-o" onclick="changeDetailView('correct')">정답</button>
+                        <button class="nav-btn" id="nav-btn-x" onclick="changeDetailView('wrong')">오답</button>
+                    </div>
+
+                    <div id="waiting-dialogue-box" style="display: flex; flex-direction: column; align-items: center; background: #fffdf7; border: 4px solid #34495e; border-radius: 20px; padding: 15px; width: 100%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <div id="waiting-result-header" class="result-title" style="font-size: 22px; margin-top:0; margin-bottom: 15px;"></div>
+                        
+                        <div class="char-image-container">
+                            <img id="waiting-char-image" src="">
+                            <div id="waiting-name-overlay" class="name-overlay"></div>
+                            <div id="waiting-stats-overlay" class="stats-overlay" style="display: none;"></div>
+                        </div>
+
+                        <div class="speech-box" style="width: 95%; min-height: 30px; font-size: 16px; margin-bottom: 5px;">
+                            <p id="waiting-dialogue-text"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn-close" onclick="closeWaitingDetail()">❌ 돌아가기</button>
+            </div>
+
+            <div id="waiting-list-panel" class="full-view">
+                <div id="filter-container"></div>
+                <div id="waiting-chars"></div>
+            </div>
+        </div>
+
+        <div id="waiting-footer" style="padding-bottom: 30px;">
+            <button class="btn-move" onclick="moveToQuestion()">다음 차원으로 이동</button>
+        </div>
+    </div>
+
+    <div id="screen-question" class="screen">
+        <div class="char-image-container" style="margin-top: 30px;">
+            <img id="question-image" src="">
+            <div id="question-name-overlay" class="name-overlay"></div>
+        </div>
+        <div class="speech-box"><p id="question-dialogue-text"></p></div>
+        <div class="btn-group">
+            <button class="btn-real" onclick="submitAnswer(true)">O 진짜다</button>
+            <button class="btn-fake" onclick="submitAnswer(false)">X 가짜다</button>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <div id="result-heading" class="result-title" style="margin-top: 0; margin-bottom: 20px;">정답 여부</div>
+        <div class="char-image-container">
+            <img id="result-image" src="">
+            <div id="result-name-overlay" class="name-overlay"></div>
+            <div id="result-stats-overlay" class="stats-overlay">
+                통계 불러오는 중...
+            </div>
+        </div>
+
+        <div class="speech-box"><p id="result-speech-text"></p></div>
+        
+        <button class="btn-move" onclick="closeResultAndMove()">계속하기</button>
+    </div>
+
+    <div id="screen-ending" class="screen">
+        <div class="char-image-container" style="margin-top: 30px; position: relative;">
+            <img id="ending-single-image" src="" class="fade-in-effect">
+            
+            <div id="ending-slide-container">
+                <div id="ending-slide-track"></div>
+            </div>
+            
+            <div id="ending-name-overlay" class="name-overlay"></div>
+        </div>
+        <div class="speech-box"><p id="ending-dialogue-text"></p></div>
+        
+        <div id="ending-btn-next-container" class="btn-group">
+            <button class="btn-move" onclick="nextEnding()">다음 ▶</button>
+        </div>
+        <div id="ending-btn-choice-container" class="btn-group" style="display: none;">
+            <button class="btn-real" onclick="chooseEnding(true)">O 진짜다</button>
+            <button class="btn-fake" onclick="chooseEnding(false)">X 가짜다</button>
+        </div>
+    </div>
+
+    <div id="screen-thanks" class="screen">
+        <h1 style="color: #f1c40f; font-size: 50px;">플레이해주셔서 감사합니다!</h1>
+        <button class="btn-move" style="margin-top: 20px;" onclick="resetGame()">처음부터 다시 하기</button>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB5lHhwpQgyPqzLRkUBa0ROkNxKVLAG-Y8",
+      authDomain: "exit-bol.firebaseapp.com",
+      projectId: "exit-bol",
+      storageBucket: "exit-bol.firebasestorage.app",
+      messagingSenderId: "259374629685",
+      appId: "1:259374629685:web:56bdb417ef6269c1b5827c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.popConfetti = () => {
+        if (typeof confetti === 'function') {
+            confetti({ 
+                particleCount: 100, 
+                spread: 70, 
+                origin: { y: 0.6 }, 
+                colors: ['#2ecc71', '#f1c40f', '#ffffff'],
+                ticks: 120  
+            });
+        }
+    };
+
+    let CHARACTERS = [];
+    let score = 0;
+    let playerProgress = JSON.parse(localStorage.getItem('trickcal_progress')) || {}; 
+    let remainingPool = []; 
+    let currentProblem = null;
+    let lastResultStatus = false;
+    let isDraggingList = false;
+    let currentDetailChar = null;
+    let currentFilter = 'All'; 
+    let currentRunHistory = []; 
+
+    const introStory = [
+        { name: "???", img: "./images/intro0.webp", text: "…교…" },
+        { name: "???", img: "./images/intro1.webp", text: "…교…주…" },
+        { name: "???", img: "./images/intro2.webp", text: "교……주……님……!" },
+        { name: "릴리", img: "./images/intro3.webp", text: "교주님! 일어나세요!" },
+        { name: "교주", img: "./images/intro4.webp", text: "(낯선 천장이다…)" },
+        { name: "교주", img: "./images/intro4.webp", text: "(여기가… 어디오…?)" },
+        { name: "릴리", img: "./images/intro3.webp", text: "주말농장은 아니니까 안심하세요" },
+        { name: "릴리(설명)", img: "./images/intro4.webp", text: "이곳은 차원과 차원의 틈새" },
+        { name: "릴리", img: "./images/intro3.webp", text: "교주님께선 프론티어 활동 중에 사고로 이곳에 떨어지셨어요" },
+        { name: "교주", img: "./images/intro4.webp", text: "(원래의 세계로 돌아가려면 어떻게 해야하지?)" },
+        { name: "릴리", img: "./images/intro3.webp", text: "교주님께 남아있는 마력의 흔적을 추적해서 원래 차원을 추적하고 있어요" },
+        { name: "릴리", img: "./images/intro3.webp", text: "무한한 차원 속에서 가능성이 높은 차원을 최대한으로 선별해봤지만" },
+        { name: "릴리", img: "./images/intro5.webp", text: "200개 미만으로 줄이는 게 한계였어요" },
+        { name: "릴리", img: "./images/intro5.webp", text: "그래서 교주님의 도움이 필요해요!"},
+        { name: "릴리", img: "./images/intro6.webp", text: "여러 차원의 사도들을 보여드릴테니 알맞은 사도를 골라주세요" },
+        { name: "릴리(수학)", img: "./images/intro7.webp", text: "8번만 정확하게 골라주시면 교주님의 차원을 선별할 수 있어요" },
+        { name: "릴리", img: "./images/intro6.webp", text: "다만 중간에 한 번이라도 틀리면 다시 처음부터 시작해야해요" },
+        { name: "릴리", img: "./images/intro3.webp", text: "시간이 없습니다, 남아있는 마력이 사라지기 전에 서두르세요!" },
+        { name: "릴리", img: "./images/intro5.webp", text: "참고로 사도들은 때때로 제 4의 벽을 넘기도 한답니다" },
+        { name: "교주", img: "./images/intro4.webp", text: "(……?)" }
+    ];
+
+    const ending1Story = [
+        { name: "릴리", img: "./images/intro6.webp", text: "교주님! 드디어 8번의 차원을 모두 확인했습니다!" }
+    ];
+    const ending2Story = [
+        { name: "릴리", img: "./images/intro3.webp", text: "차원문을 개방합니다!" },
+        { name: "교주", img: "./images/end0.webp", text: "(저건…)" },
+        { name: "교주", img: "./images/end0.webp", text: "(차원문 너머로 세계수가 보인다…)" },
+        { name: "교주", img: "./images/end1.webp", text: "(본능적으로 알 수 있다)" },
+        { name: "교주", img: "./images/end1.webp", text: "(저곳은 나의 엘리아스가 틀림없다)" },
+        { name: "교주", img: "./images/intro3.webp", text: "(…)" },
+        { name: "릴리", img: "./images/intro3.webp", text: "뭘 봐요" },
+        { name: "교주", img: "./images/intro3.webp", text: "(같이 가자, 릴리)" },
+        { name: "릴리", img: "./images/intro3.webp", text: "…" },
+        { name: "릴리", img: "./images/intro5.webp", text: "안돼요" },
+        { name: "릴리", img: "./images/intro5.webp", text: "저는 교주님 세계의 존재가 아니에요" },
+        { name: "릴리", img: "./images/intro5.webp", text: "저는 가짜라구요" },
+        { name: "교주", img: "./images/intro3.webp", text: "…" },
+        { name: "교주", img: "./images/intro3.webp", text: "(아니야)" },
+    ];
+    const ending3Story = [
+        { name: "교주", img: "./images/intro3.webp", text: "(너는 진짜야, 릴리)" },
+        { name: "릴리", img: "./images/intro3.webp", text: "…교주님…" },
+        { name: "릴리", img: "./images/intro3.webp", text: "…절 잊지 않으셨군요…?" },
+        { name: "교주", img: "./images/intro3.webp", text: "당연하지 릴리" },
+        { name: "교주", img: "./images/intro3.webp", text: "내가 어떻게 널 잊겠어 릴리!" },
+        { name: "릴리", img: "./images/intro3.webp", text: "교주님…!" },
+        { name: "릴리(흐림)", img: "./images/end6.webp", text: "에잇!" },
+        { name: "교주)", img: "./images/end6.webp", text: "(?!)" },
+        { name: "릴리(흐림)", img: "./images/end6.webp", text: "교주님" },
+        { name: "릴1리", img: "./images/end12.webp", text: "거기가면 저 인형탈 입히고 줘팰 거 잖아요" },
+        { name: "릴1리", img: "./images/end12.webp", text: "도끼든 미친 사제장한테 사지가 찢기는 모습이 눈에 선하네요" },
+        { name: "릴1리", img: "./images/end12.webp", text: "제가 미쳤다고 거길 왜 가요" },
+        { name: "릴리(멀어져감)", img: "./images/end7.webp", text: "뭐… 그래도" },
+        { name: "릴리(멀어져감)", img: "./images/end8.webp", text: "잠시나마 함께 할 수 있어서" },
+        { name: "릴리(멀어져감)", img: "./images/end9.webp", text: "좋았어요" },
+        { name: "릴리(멀어져감)", img: "./images/end10.webp", text: "안녕… 용사님…" },
+        { name: "끝", img: "./images/end11.webp", text: "[Ending : 퇴근]" }
+    ];
+    const ending4Story = [
+        { name: "교주", img: "./images/intro3.webp", text: "(너는 가짜다!!!)" },
+        { name: "릴스피", img: "./images/end2.webp", text: "아니 어떻게 알았지?!" },
+        { name: "교주", img: "./images/end3.webp", text: "(익숙한 천장이다…)" },
+        { name: "에스피", img: "./images/end4.webp", text: "흐흐…역시 교주 꿈이 제일 재밌어" },
+        { name: "교주", img: "./images/end4.webp", text: "(에스피 녀석… 조만간 가면을 박살내주마!)" },
+        { name: "끝", img: "./images/end5.webp", text: "[Ending : 5억년의 개꿈]" } 
+    ];
+
+    let currentIntroIndex = 0;
+    let typeWriterInterval;
+    let isTyping = false;
+    let fullIntroText = "";
+
+    window.startIntro = () => {
+        currentIntroIndex = 0;
+        window.renderIntro();
+        window.showScreen('screen-intro');
+    };
+
+    window.renderIntro = () => {
+        if (currentIntroIndex >= introStory.length) {
+            window.skipIntro();
+            return;
+        }
+        const currentScene = introStory[currentIntroIndex];
+        
+        const imgElement = document.getElementById('intro-image');
+        imgElement.classList.remove('fade-in-effect');
+        void imgElement.offsetWidth; 
+        imgElement.src = currentScene.img;
+        imgElement.classList.add('fade-in-effect');
+
+        if (currentScene.name === "릴리") {
+            const altImageSrc = "./images/lily_scream.webp"; 
+            let timeoutId = null;
+            imgElement.onclick = () => {
+                imgElement.src = altImageSrc;
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    if (introStory[currentIntroIndex] === currentScene) {
+                        imgElement.src = currentScene.img;
+                    }
+                }, 800); 
+            };
+        } else {
+            imgElement.onclick = null;
+        }
+        
+        document.getElementById('intro-name-overlay').innerText = currentScene.name;
+        
+        const textElement = document.getElementById('intro-dialogue-text');
+        textElement.textContent = ""; 
+        fullIntroText = currentScene.text;
+        
+        if (typeWriterInterval) clearInterval(typeWriterInterval);
+        isTyping = true;
+        
+        let charIndex = 0;
+        
+        typeWriterInterval = setInterval(() => {
+            if (charIndex < fullIntroText.length) {
+                textElement.textContent = fullIntroText.substring(0, charIndex + 1);
+                charIndex++;
+            } else {
+                clearInterval(typeWriterInterval);
+                isTyping = false;
+            }
+        }, 40); 
+    };
+
+    window.nextIntro = () => {
+        if (isTyping) {
+            clearInterval(typeWriterInterval);
+            document.getElementById('intro-dialogue-text').innerText = fullIntroText;
+            isTyping = false;
+        } else {
+            currentIntroIndex++;
+            window.renderIntro();
+        }
+    };
+
+    window.skipIntro = () => {
+        window.resetGame();
+    };
+
+    const getInitialConsonant = (str) => {
+        const chosung = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
+        const charCode = str.charCodeAt(0);
+        if (charCode < 44032 || charCode > 55203) return str.charAt(0); 
+        let initial = chosung[Math.floor((charCode - 44032) / 588)];
+        const groupMap = { "ㄲ": "ㄱ", "ㄸ": "ㄷ", "ㅃ": "ㅂ", "ㅆ": "ㅅ", "ㅉ": "ㅈ" };
+        return groupMap[initial] || initial;
+    };
+
+    window.initFilters = () => {
+        const filterContainer = document.getElementById('filter-container');
+        if (filterContainer.innerHTML !== '') return; 
+        const filterList = ['All', 'ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+        
+        filterList.forEach(f => {
+            const btn = document.createElement('button');
+            btn.className = f === 'All' ? 'filter-btn all-btn' : 'filter-btn';
+            if (f === 'All') btn.classList.add('active');
+            btn.innerText = f === 'All' ? '전체' : f; 
+            btn.dataset.filter = f;
+            btn.onclick = () => window.renderWaitingChars(f);
+            filterContainer.appendChild(btn);
+        });
+    };
+
+    window.renderWaitingChars = (filterStr) => {
+        currentFilter = filterStr;
+        const container = document.getElementById('waiting-chars');
+        container.innerHTML = '';
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.filter === filterStr) btn.classList.add('active');
+        });
+
+        CHARACTERS.forEach(char => {
+            if (filterStr !== 'All') {
+                const initial = getInitialConsonant(char.name); 
+                if (initial !== filterStr) return;
+            }
+            const div = document.createElement('div');
+            const state = playerProgress[char.id] || 'unattempted';
+            div.className = `waiting-char ${state}`;
+            
+            if (state === 'unattempted') div.style.cursor = 'not-allowed';
+            
+            div.onclick = (e) => {
+                if (isDraggingList) { e.preventDefault(); return; }
+                if (state === 'unattempted') return;
+                window.interactInWaiting(char);
+            };
+            
+            const img = document.createElement('img');
+            img.src = char.waitingImg;
+            div.appendChild(img);
+            container.appendChild(div);
+        });
+    };
+
+    window.showScreen = (id) => {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('score').innerText = score;
+    };
+
+    function preloadImage(url) {
+        return new Promise((resolve) => {
+            if (!url || url.trim() === "") resolve(false);
+            const img = new Image();
+            img.src = url;
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+        });
+    }
+
+    async function loadDataAndStart() {
+        try {
+            const res = await fetch('./characters.csv');
+            const csvText = await res.text();
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: async function(results) {
+                    const rawData = results.data;
+                    let loadedCount = 0;
+                    const tempChars = [];
+                    for (let row of rawData) {
+                        const charObj = {
+                            id: row.id, name: row.name, nameq: row.nameq || row.name,
+                            isOriginal: row.isOriginal.trim().toLowerCase() === 'true',
+                            waitingImg: row.waitingImg, questionImg: row.questionImg,
+                            correctImg: row.correctImg, wrongImg: row.wrongImg,
+                            winMsg: row.winMsg, loseMsg: row.loseMsg,
+                            questionText: row.questionText || "..."
+                        };
+                        const checks = await Promise.all([
+                            preloadImage(charObj.waitingImg), preloadImage(charObj.questionImg),
+                            preloadImage(charObj.correctImg), preloadImage(charObj.wrongImg)
+                        ]);
+                        if (checks.every(s => s)) tempChars.push(charObj);
+                        loadedCount++;
+                        const percent = Math.round((loadedCount / rawData.length) * 100);
+                        document.getElementById('loading-text').innerText = `볼따구 검사 중... (${percent}%)`;
+                        document.getElementById('loading-bar').style.width = `${percent}%`;
+                    }
+                    CHARACTERS = tempChars;
+                    window.initFilters(); 
+                    window.startIntro(); 
+                }
+            });
+        } catch (e) { document.getElementById('loading-text').innerText = "데이터 로딩 실패"; }
+    }
+
+    window.resetGame = () => {
+        document.querySelector('.score-board').style.display = 'block';
+        score = 0;
+        currentRunHistory = [];
+        remainingPool = [...CHARACTERS];
+        window.enterWaitingRoom();
+    };
+
+    window.enterWaitingRoom = () => {
+        window.showScreen('screen-waiting');
+        window.closeWaitingDetail(); 
+        window.renderWaitingChars(currentFilter); 
+    };
+
+    window.interactInWaiting = async (char) => {
+        currentDetailChar = char;
+        document.querySelector('.score-board').style.display = 'none';
+        document.getElementById('waiting-header').style.display = 'none';
+        document.getElementById('waiting-footer').style.display = 'none';
+        document.getElementById('waiting-detail-left').style.display = 'flex';
+        document.getElementById('waiting-list-panel').className = 'detail-view';
+
+        const state = playerProgress[char.id] || 'unattempted';
+        const statsOverlay = document.getElementById('waiting-stats-overlay');
+        statsOverlay.style.display = 'block';
+        
+        let truthHtml = char.isOriginal 
+            ? '<div style="background:#2ecc71; border: 2px solid #27ae60; color:#fff; border-radius:8px; padding:3px; margin-bottom:5px; text-align:center; font-weight:bold; font-size:15px;">\uC9C4\uC9DC</div>' 
+            : '<div style="background:#e74c3c; border: 2px solid #c0392b; color:#fff; border-radius:8px; padding:3px; margin-bottom:5px; text-align:center; font-weight:bold; font-size:15px;">\uAC00\uC9DC</div>';
+
+        statsOverlay.innerHTML = truthHtml + '\uB85C\uB529\u0020\uC911\u002E\u002E\u002E'; 
+        
+        const snap = await getDoc(doc(db, "characters", char.id.toString()));
+        if (snap.exists()) {
+            const d = snap.data();
+            const rate = Math.round((d.wrong / d.total) * 100) || 0;
+            currentDetailChar.fetchedRate = rate;
+            const colorStyle = rate >= 70 ? 'color: #ff7675;' : 'color: #f1c40f;';
+            statsOverlay.innerHTML = truthHtml + '\uC624\uB2F5\uB960\u003A <strong style="' + colorStyle + ' font-size: 16px;">' + rate + '%</strong><br><span style="font-size: 12px; opacity: 0.8;">(총 '+d.total+'회 참여)</span>';
+        } else {
+            currentDetailChar.fetchedRate = 0;
+            statsOverlay.innerHTML = truthHtml + 'No Data';
+        }
+
+        window.changeDetailView('question');
+    };
+
+    window.changeDetailView = (viewType) => {
+        if (!currentDetailChar) return;
+        
+        document.getElementById('nav-btn-q').classList.remove('active');
+        document.getElementById('nav-btn-o').classList.remove('active');
+        document.getElementById('nav-btn-x').classList.remove('active');
+        
+        const header = document.getElementById('waiting-result-header');
+        const img = document.getElementById('waiting-char-image');
+        const text = document.getElementById('waiting-dialogue-text');
+        const nameOverlay = document.getElementById('waiting-name-overlay');
+        
+        nameOverlay.style.display = 'block'; 
+
+        if (viewType === 'question') {
+            document.getElementById('nav-btn-q').classList.add('active');
+            const state = playerProgress[currentDetailChar.id];
+            if (state === 'correct') {
+                header.innerText = "맞춘 문제에요"; 
+                header.className = "result-title result-correct";
+            } else {
+                header.innerText = "틀린 문제에요"; 
+                header.className = "result-title result-wrong";
+            } 
+            img.src = currentDetailChar.questionImg;
+            text.innerText = currentDetailChar.questionText;
+            nameOverlay.innerText = currentDetailChar.nameq;
+        } else if (viewType === 'correct') {
+            document.getElementById('nav-btn-o').classList.add('active');
+            header.innerText = "정답 확인";
+            header.className = "result-title result-correct";
+            img.src = currentDetailChar.correctImg;
+            text.innerText = currentDetailChar.winMsg;
+            nameOverlay.innerText = currentDetailChar.name;
+        } else if (viewType === 'wrong') {
+            document.getElementById('nav-btn-x').classList.add('active');
+            header.innerText = "오답 확인";
+            header.className = "result-title result-wrong";
+            img.src = currentDetailChar.wrongImg;
+            
+            let detailSpeechText = currentDetailChar.loseMsg;
+            if (currentDetailChar.name === '뮤트') {
+                let r = currentDetailChar.fetchedRate || 0;
+                detailSpeechText = `교주님이 이 문제를 틀렸을 확률 : ${r}%`;
+            }
+            text.innerText = detailSpeechText;
+            
+            if (currentDetailChar.name === '마리') nameOverlay.style.display = 'none'; 
+            else if (currentDetailChar.name === '버터') nameOverlay.innerText = '마들렌'; 
+            else nameOverlay.innerText = currentDetailChar.name;
+        }
+    };
+
+    window.closeWaitingDetail = () => {
+        document.querySelector('.score-board').style.display = 'block';
+        document.getElementById('waiting-header').style.display = 'flex';
+        document.getElementById('waiting-footer').style.display = 'block';
+        document.getElementById('waiting-detail-left').style.display = 'none';
+        document.getElementById('waiting-list-panel').className = 'full-view';
+    };
+
+    window.moveToQuestion = () => {
+        if (remainingPool.length === 0) remainingPool = [...CHARACTERS];
+
+        let unattemptedIndices = [];
+        for (let i = 0; i < remainingPool.length; i++) {
+            if (!playerProgress[remainingPool[i].id]) unattemptedIndices.push(i);
+        }
+
+        let idx;
+        if (unattemptedIndices.length > 0) {
+            let randPos = Math.floor(Math.random() * unattemptedIndices.length);
+            idx = unattemptedIndices[randPos];
+        } else {
+            idx = Math.floor(Math.random() * remainingPool.length);
+        }
+
+        currentProblem = remainingPool.splice(idx, 1)[0];
+        
+        document.getElementById('question-name-overlay').innerText = currentProblem.nameq;
+        document.getElementById('question-image').src = currentProblem.questionImg;
+        document.getElementById('question-dialogue-text').innerText = currentProblem.questionText;
+        window.showScreen('screen-question');
+    };
+
+    window.submitAnswer = async (choseReal) => {
+        const isCorrect = (choseReal === currentProblem.isOriginal);
+        if (isCorrect) {
+            window.popConfetti();
+            currentRunHistory.push(currentProblem); 
+        } else {
+            const container = document.getElementById('game-container');
+            container.classList.add('shake-effect');
+            setTimeout(() => container.classList.remove('shake-effect'), 500);
+            currentRunHistory = []; 
+        }
+
+        const isFirstAttempt = !playerProgress[currentProblem.id];
+        const ref = doc(db, "characters", currentProblem.id.toString());
+        
+        if (isFirstAttempt) {
+            try { await updateDoc(ref, { total: increment(1), wrong: increment(isCorrect ? 0 : 1) }); }
+            catch { await setDoc(ref, { total: 1, wrong: isCorrect ? 0 : 1 }); }
+        }
+
+        playerProgress[currentProblem.id] = isCorrect ? 'correct' : 'wrong';
+        localStorage.setItem('trickcal_progress', JSON.stringify(playerProgress));
+
+        const statsOverlay = document.getElementById('result-stats-overlay');
+        statsOverlay.innerHTML = "Loading...";
+
+        const snap = await getDoc(ref);
+        let currentRate = 0; 
+
+        if (snap.exists()) {
+            const d = snap.data();
+            currentRate = Math.round((d.wrong / d.total) * 100) || 0;
+            const colorStyle = currentRate >= 70 ? 'color: #ff7675;' : 'color: #f1c40f;';
+            statsOverlay.innerHTML = `오답률: <strong style="${colorStyle} font-size: 18px;">${currentRate}%</strong><br><span style="font-size: 13px; opacity: 0.8;">(총 ${d.total}회 참여)</span>`;
+        }
+
+        lastResultStatus = isCorrect;
+        score = isCorrect ? score + 1 : 0;
+
+        document.getElementById('result-heading').innerText = isCorrect ? "정답입니다!" : "오답입니다...";
+        document.getElementById('result-heading').className = `result-title ${isCorrect ? 'result-correct' : 'result-wrong'}`;
+        
+        const resultNameOverlay = document.getElementById('result-name-overlay');
+        resultNameOverlay.style.display = 'block';
+        
+        if (!isCorrect && currentProblem.name === '마리') resultNameOverlay.style.display = 'none';
+        else if (!isCorrect && currentProblem.name === '버터') resultNameOverlay.innerText = '마들렌';
+        else resultNameOverlay.innerText = currentProblem.name;
+        
+        document.getElementById('result-image').src = isCorrect ? currentProblem.correctImg : currentProblem.wrongImg;
+        
+        let finalSpeechText = isCorrect ? currentProblem.winMsg : currentProblem.loseMsg;
+        if (!isCorrect && currentProblem.name === '뮤트') {
+            finalSpeechText = `교주님이 이 문제를 틀렸을 확률 : ${currentRate}%`;
+        }
+        document.getElementById('result-speech-text').innerText = finalSpeechText;
+        
+        window.showScreen('screen-result');
+    };
+
+    window.closeResultAndMove = () => {
+        if (lastResultStatus && score >= 8) window.startEnding();
+        else window.enterWaitingRoom();
+    };
+
+    let endingPhase = 0; 
+    let endingStoryIndex = 0;
+    let isEndingTyping = false;
+    let endingTypeWriterInterval;
+    let fullEndingText = "";
+    let endingChoiceReal = true;
+    let endingStatsPercent = 0;
+
+    window.startEnding = () => {
+        document.querySelector('.score-board').style.display = 'none'; 
+        endingPhase = 0;
+        endingStoryIndex = 0;
+        window.showScreen('screen-ending');
+        window.renderEndingPhase();
+    };
+
+    window.renderEndingPhase = () => {
+        const singleImg = document.getElementById('ending-single-image');
+        const slideContainer = document.getElementById('ending-slide-container');
+        const nameOverlay = document.getElementById('ending-name-overlay');
+        const textElement = document.getElementById('ending-dialogue-text');
+        const nextBtn = document.getElementById('ending-btn-next-container');
+        const choiceBtn = document.getElementById('ending-btn-choice-container');
+
+        singleImg.style.display = 'block';
+        singleImg.classList.remove('fade-in-effect');
+        void singleImg.offsetWidth; 
+        singleImg.classList.add('fade-in-effect');
+        
+        slideContainer.style.display = 'none';
+        nextBtn.style.display = 'flex';
+        choiceBtn.style.display = 'none';
+        nameOverlay.style.display = 'block';
+
+        let currentStoryData = null;
+
+        if (endingPhase === 0) {
+            if (endingStoryIndex >= ending1Story.length) {
+                endingPhase = 1;
+                window.renderEndingPhase();
+                return;
+            }
+            currentStoryData = ending1Story[endingStoryIndex];
+        } else if (endingPhase === 1) {
+            singleImg.style.display = 'none';
+            slideContainer.style.display = 'flex';
+            renderSlidingChars(currentRunHistory.filter(c => c.isOriginal));
+            nameOverlay.innerText = "릴리(설명)";
+            fullEndingText = "교주님께서 만난 '진짜' 사도들의 기록입니다";
+            playEndingTyping(textElement, fullEndingText);
+            return;
+        } else if (endingPhase === 2) {
+            singleImg.style.display = 'none';
+            slideContainer.style.display = 'flex';
+            renderSlidingChars(currentRunHistory.filter(c => !c.isOriginal));
+            nameOverlay.innerText = "릴리(설명)";
+            fullEndingText = "교주님께서 만난 '가짜' 사도들의 기록입니다";
+            playEndingTyping(textElement, fullEndingText);
+            return;
+        } else if (endingPhase === 3) {
+            singleImg.style.display = 'none';
+            slideContainer.style.display = 'flex';
+            renderSlidingChars(currentRunHistory);
+            nameOverlay.innerText = "릴리(설명)";
+            fullEndingText = "이 기록들을 기반으로 차원 분석을 마쳤어요";
+            playEndingTyping(textElement, fullEndingText);
+            return;
+        } else if (endingPhase === 4) {
+            if (endingStoryIndex >= ending2Story.length) {
+                endingPhase = 5;
+                window.renderEndingPhase();
+                return;
+            }
+            currentStoryData = ending2Story[endingStoryIndex];
+        } else if (endingPhase === 5) {
+            singleImg.src = "./images/intro3.webp"; 
+            nameOverlay.innerText = "교주";
+            fullEndingText = "(아니야…! 너는…!)";
+            nextBtn.style.display = 'none';
+            choiceBtn.style.display = 'flex';
+            singleImg.onclick = null; // 선택지 씬에서는 터치 이벤트 완전 해제
+            playEndingTyping(textElement, fullEndingText);
+            return;
+        } else if (endingPhase === 6) {
+            const storyArr = endingChoiceReal ? ending3Story : ending4Story;
+            if (endingStoryIndex >= storyArr.length) {
+                window.showScreen('screen-thanks');
+                return;
+            }
+            currentStoryData = storyArr[endingStoryIndex];
+            
+            // 마지막 대사일 경우 통계 텍스트 결합
+            if (endingStoryIndex === storyArr.length - 1) {
+                fullEndingText = currentStoryData.text + `\n\n[당신과 같은 결정을 내린 교주의 비율: ${endingStatsPercent}%]`;
+            } else {
+                fullEndingText = currentStoryData.text;
+            }
+        }
+
+        if (currentStoryData) {
+            singleImg.src = currentStoryData.img;
+            nameOverlay.innerText = currentStoryData.name;
+            
+            // Phase 6이 아닐 때만 텍스트 덮어쓰기 (Phase 6은 위에서 통계 텍스트를 준비했으므로)
+            if (endingPhase !== 6) {
+                fullEndingText = currentStoryData.text;
+            }
+            playEndingTyping(textElement, fullEndingText);
+
+            // ---- 릴리 터치 이스터에그 로직 ----
+            if (currentStoryData.name === "릴리") {
+                const altImageSrc = "./images/lily_scream.webp"; 
+                let timeoutId = null;
+                const currentPhase = endingPhase;
+                const currentIndex = endingStoryIndex;
+
+                singleImg.onclick = () => {
+                    singleImg.src = altImageSrc;
+                    if (timeoutId) clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        // 사용자가 다음 화면으로 넘어가지 않고 그대로 화면에 머물러 있을 때만 원래 이미지로 복구
+                        if (endingPhase === currentPhase && endingStoryIndex === currentIndex) {
+                            singleImg.src = currentStoryData.img;
+                        }
+                    }, 800); 
+                };
+            } else {
+                // 릴리가 아닐 때는 무조건 클릭 이벤트 해제
+                singleImg.onclick = null; 
+            }
+        }
+    };
+
+function renderSlidingChars(chars) {
+        const container = document.getElementById('ending-slide-container');
+        const track = document.getElementById('ending-slide-track');
+        track.innerHTML = '';
+        
+        if (chars.length === 0) {
+            track.innerHTML = '<span style="color:#7f8c8d; font-size:24px; margin:auto;">(해당 기록 없음)</span>';
+            track.style.animation = 'none';
+            track.style.width = '100%';
+            track.style.justifyContent = 'center';
+            return;
+        }
+
+        track.style.justifyContent = 'flex-start';
+        track.style.width = 'max-content';
+        
+        // 캐릭터 상자(이미지 + 이름) 생성
+        chars.forEach((char) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'slide-item';
+            
+            const img = document.createElement('img');
+            img.src = char.questionImg;
+            
+            // 이름표 생성
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'name-overlay';
+            nameDiv.style.fontSize = '14px'; // 작은 박스에 맞춰 글자 크기 축소
+            nameDiv.style.padding = '4px 8px';
+            nameDiv.style.top = '5px';
+            nameDiv.style.left = '5px';
+            nameDiv.innerText = char.name; // CSV의 name 가져오기
+            
+            wrapper.appendChild(img);
+            wrapper.appendChild(nameDiv);
+            track.appendChild(wrapper);
+        });
+
+        const containerWidth = container.clientWidth || 900;
+        
+        setTimeout(() => {
+            const trackWidth = track.scrollWidth;
+            
+            let styleEl = document.getElementById('dynamic-marquee-style');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'dynamic-marquee-style';
+                document.head.appendChild(styleEl);
+            }
+            
+            const totalDistance = containerWidth + trackWidth;
+            
+            styleEl.innerHTML = `
+                @keyframes dynamicSlideShow {
+                    0% { transform: translateX(${containerWidth}px); }
+                    100% { transform: translateX(-${trackWidth}px); }
+                }
+            `;
+
+            // 스크롤 속도 조절 (초당 150픽셀 이동)
+            const speedPerSecond = 150; 
+            const duration = totalDistance / speedPerSecond; 
+            
+            track.style.animation = 'none';
+            void track.offsetWidth;
+            track.style.animation = `dynamicSlideShow ${duration}s linear infinite`;
+        }, 50);
+    }
+
+    function playEndingTyping(element, text) {
+        element.textContent = "";
+        if (endingTypeWriterInterval) clearInterval(endingTypeWriterInterval);
+        isEndingTyping = true;
+        let charIndex = 0;
+        endingTypeWriterInterval = setInterval(() => {
+            if (charIndex < text.length) {
+                element.textContent = text.substring(0, charIndex + 1);
+                charIndex++;
+            } else {
+                clearInterval(endingTypeWriterInterval);
+                isEndingTyping = false;
+            }
+        }, 40);
+    }
+
+    window.nextEnding = () => {
+        if (isEndingTyping) {
+            clearInterval(endingTypeWriterInterval);
+            document.getElementById('ending-dialogue-text').innerText = fullEndingText;
+            isEndingTyping = false;
+        } else {
+            if (endingPhase === 0 || endingPhase === 4 || endingPhase === 6) {
+                endingStoryIndex++;
+            } else if (endingPhase >= 1 && endingPhase <= 3) {
+                endingPhase++;
+                endingStoryIndex = 0;
+            }
+            window.renderEndingPhase();
+        }
+    };
+
+    window.chooseEnding = async (isReal) => {
+        endingChoiceReal = isReal;
+        
+        const choiceBtnContainer = document.getElementById('ending-btn-choice-container');
+        choiceBtnContainer.style.pointerEvents = 'none';
+        choiceBtnContainer.style.opacity = '0.5';
+        document.getElementById('ending-dialogue-text').innerText = "결과를 차원 서버에 기록 중입니다...";
+
+        endingStatsPercent = await recordAndFetchEndingStats(isReal);
+        
+        endingPhase = 6;
+        endingStoryIndex = 0;
+        
+        choiceBtnContainer.style.pointerEvents = 'auto';
+        choiceBtnContainer.style.opacity = '1';
+        window.renderEndingPhase();
+    };
+
+    async function recordAndFetchEndingStats(isReal) {
+        const hasCleared = localStorage.getItem('trickcal_ending_cleared');
+        const statRef = doc(db, "system", "ending_stats");
+        let percent = 100;
+
+        try {
+            if (!hasCleared) {
+                try {
+                    await updateDoc(statRef, {
+                        [isReal ? 'real_count' : 'fake_count']: increment(1)
+                    });
+                } catch (e) {
+                    await setDoc(statRef, {
+                        real_count: isReal ? 1 : 0,
+                        fake_count: isReal ? 0 : 1
+                    });
+                }
+                localStorage.setItem('trickcal_ending_cleared', 'true');
+            }
+
+            const snap = await getDoc(statRef);
+            if (snap.exists()) {
+                const d = snap.data();
+                const total = (d.real_count || 0) + (d.fake_count || 0);
+                if (total > 0) {
+                    const count = isReal ? (d.real_count || 0) : (d.fake_count || 0);
+                    percent = Math.round((count / total) * 100);
+                }
+            }
+        } catch(error) {
+            console.error("Firebase error: ", error);
+        }
+        return percent;
+    }
+
+    const scrollArea = document.getElementById('waiting-list-panel');
+    let isDown = false;
+    let startY;
+    let scrollTop;
+
+    scrollArea.addEventListener('mousedown', (e) => {
+        if (scrollArea.className === 'full-view') return; 
+        isDown = true;
+        isDraggingList = false; 
+        startY = e.pageY - scrollArea.offsetTop;
+        scrollTop = scrollArea.scrollTop;
+    });
+    scrollArea.addEventListener('mouseleave', () => { isDown = false; });
+    scrollArea.addEventListener('mouseup', () => {
+        isDown = false;
+        setTimeout(() => isDraggingList = false, 50); 
+    });
+    scrollArea.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const y = e.pageY - scrollArea.offsetTop;
+        const walk = (y - startY) * 1.5; 
+        
+        if (Math.abs(walk) > 5) isDraggingList = true; 
+        scrollArea.scrollTop = scrollTop - walk;
+    });
+
+    loadDataAndStart();
+</script>
+</body>
+</html>
