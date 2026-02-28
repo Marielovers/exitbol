@@ -320,6 +320,17 @@
 /* 로딩 완료 후 자바스크립트로 추가할 클래스 */
 #screen-loading.loaded {
     background-image: url('./images/bg.webp');
+    
+    /* 1. 원래 크기 유지: 확대/축소 없이 원본 픽셀 그대로 표시 */
+    background-size: auto; 
+    
+    /* 2. 위치 조절: 좌우 중앙, 상단에서 15% 지점 (원하시는 대로 조정 가능) */
+    background-position: center 15%; 
+    
+    /* 3. 반복 방지: 이미지가 화면보다 작아도 여백을 반복해서 채우지 않음 */
+    background-repeat: no-repeat;
+
+    /* 배경색은 이전과 동일하게 아이보리(#fffdf7)가 여백을 채웁니다. */
 }
 </style>
 
