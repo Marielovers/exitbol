@@ -194,15 +194,28 @@
     .nav-btn.active { background: #f39c12; border-bottom: 4px solid #d35400; transform: scale(1.05); }
     .nav-btn:hover:not(.active) { background: #bdc3c7; transform: translateY(-2px); }
 
+/* 모바일 전용 스타일 수정 */
     @media (max-width: 600px) {
-        #waiting-list-panel.detail-view { width: 130px; }
-        .waiting-char { width: 50px; height: 50px; }
+        /* 캐릭터 선택 시 우측 리스트를 아예 숨깁니다 */
+        #waiting-list-panel.detail-view { 
+            display: none; 
+        }
+
+        /* 상세 정보 레이아웃이 화면 전체를 쓰도록 조정 */
+        .detail-layout { 
+            flex-direction: column; 
+            align-items: center; 
+            width: 100%; 
+            max-width: 100%; 
+        }
+
+        /* 기타 모바일 폰트 및 버튼 사이즈 유지 */
         h3 { margin: 5px 0; font-size: 20px !important; }
         .name-overlay { font-size: 16px; padding: 6px 12px; top: 8px; left: 8px; } 
         .btn-move { padding: 12px 30px; font-size: 16px; }
-        .detail-layout { flex-direction: column; align-items: center; }
         .vertical-nav { flex-direction: row; padding-right: 0; padding-bottom: 15px; }
         .nav-btn { padding: 8px 15px; font-size: 16px; }
+        .waiting-char { width: 50px; height: 50px; }
     }
 
     #loading-container { width: 80%; height: 24px; background-color: #ecf0f1; border-radius: 12px; margin-top: 20px; border: 3px solid #34495e; overflow: hidden; }
@@ -291,7 +304,7 @@
     </div>
 
     <div id="title-ui" style="display: none; flex-direction: column; align-items: center;">
-        <div id="start-btn-container" style="transform: translateY(200px);">
+        <div id="start-btn-container" style="transform: translateY(150px);">
             <button class="btn-move" style="font-size: 32px; padding: 25px 80px;" onclick="startGame()">게임 시작!</button>
         </div>
     </div>
@@ -516,7 +529,7 @@
             confetti({ 
                 particleCount: 100, 
                 spread: 70, 
-                origin: { y: 0.6 }, 
+                origin: { y: 0.8 }, 
                 colors: ['#2ecc71', '#f1c40f', '#ffffff'],
                 ticks: 120  
             });
@@ -582,18 +595,18 @@
         { name: "릴리", img: "./images/intro3.webp", text: "…교주님…" },
         { name: "릴리", img: "./images/intro3.webp", text: "…절 잊지 않으셨군요…?" },
         { name: "교주", img: "./images/intro3.webp", text: "(당연하지 릴리)" },
-        { name: "교주", img: "./images/intro3.webp", text: "(내가 널 어떻게 잊을 수 있어 릴리!)" },
+        { name: "교주", img: "./images/intro3.webp", text: "(내가 널 어떻게 잊을 수 있겠어)" },
         { name: "릴리", img: "./images/intro3.webp", text: "교주님…!" },
         { name: "릴리(흐림)", img: "./images/end6.webp", text: "에잇!" },
         { name: "교주)", img: "./images/end6.webp", text: "(?!)" },
         { name: "릴리(흐림)", img: "./images/end6.webp", text: "교주님, 죄송해요" },
         { name: "릴리(흐림)", img: "./images/end6.webp", text: "전 같이 갈 수 없어요" },
         { name: "릴리(흐림)", img: "./images/end6.webp", text: "왜냐하면…" },
-        { name: "릴1리", img: "./images/end12.webp", text: "거기가면 저 인형탈 입히고 줘팰 거 잖아요", bgm: "intro"  },
+        { name: "릴1리", img: "./images/end12.webp", text: "거기가면 인형탈 입히고 줘팰 거 잖아요", bgm: "intro"  },
         { name: "릴1리", img: "./images/end12.webp", text: "도끼든 미친 사제장한테 사지가 찢기는 모습이 눈에 선하네요" },
         { name: "릴1리", img: "./images/end12.webp", text: "제가 미쳤다고 거길 왜 가요" },
         { name: "릴리(멀어져감)", img: "./images/end7.webp", text: "뭐… 그래도", bgm: "ending6"  },
-        { name: "릴리(멀어져감)", img: "./images/end8.webp", text: "잠시나마 함께 할 수 있어서" },
+        { name: "릴리(멀어져감)", img: "./images/end8.webp", text: "잠시라도 함께 할 수 있어서" },
         { name: "릴리(멀어져감)", img: "./images/end9.webp", text: "좋았어요" },
         { name: "릴리(멀어져감)", img: "./images/end10.webp", text: "안녕… 용사님…" },
         { name: "끝", img: "./images/end11.webp", text: "[Ending : 퇴근]" }
@@ -841,6 +854,7 @@ async function loadDataAndStart() {
         document.querySelector('.score-board').style.display = 'none';
         document.getElementById('waiting-header').style.display = 'none';
         document.getElementById('waiting-footer').style.display = 'none';
+        document.getElementById('btn-replay-intro').style.display = 'none';
         document.getElementById('waiting-detail-left').style.display = 'flex';
         document.getElementById('waiting-list-panel').className = 'detail-view';
 
@@ -926,6 +940,10 @@ async function loadDataAndStart() {
         document.querySelector('.score-board').style.display = 'block';
         document.getElementById('waiting-header').style.display = 'flex';
         document.getElementById('waiting-footer').style.display = 'block';
+        // [추가] 점수가 0점일 때만 오프닝 버튼 다시 표시
+    if (score === 0) {
+        document.getElementById('btn-replay-intro').style.display = 'block';
+    }
         document.getElementById('waiting-detail-left').style.display = 'none';
         document.getElementById('waiting-list-panel').className = 'full-view';
     };
