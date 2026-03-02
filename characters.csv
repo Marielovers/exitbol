@@ -128,6 +128,7 @@ PC방 가야지~"
 69,아르코,아르코,arco,TRUE,./images/arco_m.webp,./images/arco_q.webp,./images/arco_c.webp,./images/arco_w.webp,전 범죄 전과가 있어요,제 전과는 진정한 자유를 위해 저항했던 승리의 기록이에요!,"안 되면 될 때까지!
 할 수 있어요! 아자아자!"
 70,아멜리아,아멜리아,amelia,TRUE,./images/amelia_m.webp,./images/amelia_q.webp,./images/amelia_c.webp,./images/amelia_w.webp,과거의 저는 시장님의 카피캣 발명가였습니다,시장님의 알량한 자비심 덕분에 시장님의 조교가 되었습니다,엘레나땅 마크42는 오직 저만을 위한 발명품입니다
+125,아멜리아(R41),아멜리아(R41),amelia41,FALSE,./images/ameliar_m.webp,./images/ameliar_q.webp,./images/ameliar_c.webp,./images/ameliar_w.webp,이 몸이 쌀밥을 좋아하는 이유는 모든 음식과 조화롭게 어우러지기 때문이다,이 몸의 미모를 마음껏 감상하거라,완벽한 이 몸에 비해 아멜리아의 패션 센스는 처참하기 그지없다
 71,아사나,아사나,asana,TRUE,./images/asana_m.webp,./images/asana_q.webp,./images/asana_c.webp,./images/asana_w.webp,저는 고위마녀가 아닙니다,"예전엔 고위마녀였습니다
 심미체 이론을 직접 증명하기 위해 스스로 대학원생이 되었죠",예전이 그립지 않냐고요? ⋯풋! 전혀요.
 72,아야,아야,aya,FALSE,./images/aya_m.webp,./images/aya_q.webp,./images/aya_c.webp,./images/aya_w.webp,엘리아스의 눈은 '죽음'을 의미해,"눈이 내리면 마음이 차분해져
@@ -220,11 +221,11 @@ Cucumber에서 유래했죠","제 글로벌 이름은 Kyuri 입니다
 119,골디,골디,goldy,TRUE,./images/goldy_m.webp,./images/goldy_q.webp,./images/goldy_c.webp,./images/goldy_w.webp,저는 은의 용족과 대결한 적이 있어요…,그 일을 계기로 모나티엄으로 올라와 장사를 시작했답니다,제 뿔은 한 번 망가진 것을 고쳐 모양을 잡은 거에요
 120,크레페,크레페,crepe,FALSE,./images/crepe_m.webp,./images/crepe_q.webp,./images/crepe_c.webp,./images/crepe_w.webp,"좋아요~ 좋아요~
 물걸레질 좋아요~",교주님! 악몽이라도 꾸셨나요?,좋아요♡
-121,델리아,델리아,delia,FALSE,./images/delia_m.webp,./images/delia_q.webp,./images/delia_c.webp,./images/delia_w.webp,"이곳의 이름은 델리아스!
-제가 이름 붙였어요",저는 언제 실장되나요?,이런 취향이세요…?
 122,그림교주,그림교주,gyoju,TRUE,./images/gyoju_m.webp,./images/gyoju_q.webp,./images/gyoju_c.webp,./images/gyoju_w.webp,"""왜 시키지도 않은 일을 몰래 그렇게 한 거야?""
 진짜로 에르핀에게 그렇게 말했어…?",왜…? 우리는 교주잖아…?,"에르핀을 지켜줘…
 우린… 교주니까… "
+121,델리아,델리아,delia,FALSE,./images/delia_m.webp,./images/delia_q.webp,./images/delia_c.webp,./images/delia_w.webp,"이곳의 이름은 델리아스!
+제가 이름 붙였어요",저는 언제 실장되나요?,이런 취향이세요…?
 123,냉장고,냉장고,freez,TRUE,./images/freez_m.webp,./images/freez_q.webp,./images/freez_c.webp,./images/freez_w.webp,"삣
 (저는 14대 갤주입니다)","삐빗…
 (저도 실장되고 싶어요)","삐빗
