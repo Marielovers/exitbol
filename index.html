@@ -1615,18 +1615,19 @@ window.skipEnding = () => {
             
 } else if (endingPhase === 6) {
     let storyArr;
+    let useAlt = false; // 변수를 if문 밖으로 빼서 선언합니다.
 
     if (endingChoice === 'lily') {
         const seen6 = localStorage.getItem('trickcal_seen_endingh') === 'true';
-        const useAlt = window.forceAltEnding !== null ? window.forceAltEnding : seen6;
+        useAlt = window.forceAltEnding !== null ? window.forceAltEnding : seen6;
         storyArr = useAlt ? ending6Story_alt : ending6Story;
     } else if (endingChoice === 'real') {
         const seen3 = localStorage.getItem('trickcal_seen_endingr') === 'true';
-        const useAlt = window.forceAltEnding !== null ? window.forceAltEnding : seen3;
+        useAlt = window.forceAltEnding !== null ? window.forceAltEnding : seen3;
         storyArr = useAlt ? ending3Story_alt : ending3Story;
     } else {
         const seen4 = localStorage.getItem('trickcal_seen_endingf') === 'true';
-        const useAlt = window.forceAltEnding !== null ? window.forceAltEnding : seen4;
+        useAlt = window.forceAltEnding !== null ? window.forceAltEnding : seen4;
         storyArr = useAlt ? ending4Story_alt : ending4Story;
     }
 
