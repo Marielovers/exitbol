@@ -1657,7 +1657,7 @@ window.skipEnding = () => {
     
     if (endingStoryIndex === storyArr.length - 1) {
         if (endingChoice === 'lily') {
-            fullEndingText = currentStoryData.text + `\n\n[이 숨겨진 선택을 내린 교주의 비율: ${endingStatsPercent}% (총 ${endingStatsTotal}명 발견)]`;
+            fullEndingText = currentStoryData.text + `\n\n[이 숨겨진 결정을 내린 교주의 비율: ${endingStatsPercent}% (총 ${endingStatsTotal}명 중  ${endingStatsHTotal}명)]`;
         } else {
             fullEndingText = currentStoryData.text + `\n\n[당신과 같은 결정을 내린 교주의 비율: ${endingStatsPercent}% (총 ${endingStatsTotal}명 참여)]`;
         }
