@@ -971,7 +971,7 @@ const ending3Story_alt = [
         { name: "릴1리", img: "./images/end12.webp", text: "그리고 두들겨 패시려고요?" },
         { name: "릴1리", img: "./images/end12.webp", text: "저는 퇴근할 거에요!" },
         { name: "릴리(멀어져감)", img: "./images/end7.webp", text: "그러니까 이제 그만 오세요", bgm: "ending6"  },
-        { name: "릴리(멀어져감)", img: "./images/end8.webp", text: "감동적인 장면도 한 두번이어야지" },
+        { name: "릴리(멀어져감)", img: "./images/end8.webp", text: "감동적인 장면도 한두 번이어야지" },
         { name: "릴리(멀어져감)", img: "./images/end9.webp", text: "언젠가 다시 만나는 날까지" },
         { name: "릴리(멀어져감)", img: "./images/end10.webp", text: "용사님, 안녕~" },
         { name: "끝", img: "./images/end11.webp", text: "[Ending : 칼퇴]" }
@@ -1675,7 +1675,7 @@ window.skipEnding = () => {
     
     if (endingStoryIndex === storyArr.length - 1) {
         if (endingChoice === 'lily') {
-            fullEndingText = currentStoryData.text + `\n\n[이 숨겨진 엔딩을 찾은 교주님의 비율: ${endingStatsPercent}% (총 ${endingStatsTotal}명 중  ${endingStatsHTotal}명)]`;
+            fullEndingText = currentStoryData.text + `\n\n[숨겨진 엔딩을 찾은 교주님의 비율: ${endingStatsPercent}% (총 ${endingStatsTotal}명 중  ${endingStatsHTotal}명)]`;
         } else {
             fullEndingText = currentStoryData.text + `\n\n[당신과 같은 결정을 내린 교주님의 비율: ${endingStatsPercent}% (총 ${endingStatsTotal}명 참여)]`;
         }
