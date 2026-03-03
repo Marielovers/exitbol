@@ -455,7 +455,7 @@
                 게임 내 사용된 모든 이미지, 사운드 및 캐릭터 소스의 권리는 원저작권자인 [에피드게임즈]에 있습니다.<br>
                 본 게임은 수익을 창출하지 않으며, 권리자의 요청이 있을 경우 예고 없이 중단될 수 있습니다.
             </div>
-            <div class="release-date" style="bottom: 20px; right: 20px;">릴리즈 : 2026.03.03 (v1.2.1)</div>
+            <div class="release-date" style="bottom: 20px; right: 20px;">릴리즈 : 2026.03.03 (v1.2.2)</div>
         </div>
     </div>
 
@@ -623,7 +623,8 @@
         special: new Audio('./audio/SFX_Common_ButtonUp.ogg'),
         correct: new Audio('./audio/SFX_Gacha_GetHero.ogg'),
         wrong: new Audio('./audio/SFX_InGame_TimeOver.ogg'),
-        volumeTest: new Audio('./audio/v_test.ogg')
+        volumeTest: new Audio('./audio/v_test.ogg'),
+        volumeUp: new Audio('./audio/vup.ogg')
     };
 
     let currentGlobalVolume = 0.5;
@@ -744,7 +745,13 @@
         if (isDraggingVolume) {
             isDraggingVolume = false; 
             hideVolumeText();
-            playSFX('volumeTest'); 
+            if (currentGlobalVolume > dragStartVolume) {
+                playSFX('volumeUp');
+                audioSFX.volumeTest.pause();
+            } else {
+                playSFX('volumeTest'); 
+                audioSFX.volumeUp.pause();
+            }    
         }
     });
 
@@ -765,7 +772,13 @@
         if (isDraggingVolume) {
             isDraggingVolume = false; 
             hideVolumeText();
-            playSFX('volumeTest'); 
+            if (currentGlobalVolume > dragStartVolume) {
+                playSFX('volumeUp');
+                audioSFX.volumeTest.pause();
+            } else {
+                playSFX('volumeTest'); 
+                audioSFX.volumeUp.pause();
+            }    
         }
     });
 
